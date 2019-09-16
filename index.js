@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 
 const Game = require("./game/model");
 const gameFactory = require("./game/router");
+const userRouter = require("./user/router")
 
 const JSONparser = bodyParser.json();
 const stream = new Sse();
@@ -33,6 +34,8 @@ app.get("/stream", onStream);
 
 const gameRouter = gameFactory(update);
 app.use(gameRouter);
+
+app.use(userRouter);
 
 const port = process.env.PORT || 4000;
 
