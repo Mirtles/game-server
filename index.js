@@ -1,8 +1,39 @@
-const express = require('express')
+const express = require("express");
+const Sse = require("json-sse");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 
-const db = require('./db')
+const Game = require("./game/model");
+const gameFactory = require("./game/router");
 
-const app = express()
-const port = process.env.PORT || 4000
+const JSONparser = bodyParser.json();
+const stream = new Sse();
+const app = express();
+const corsMiddleware = cors();
 
-app.listen(port, () => console.log(`\nListening on port ${port}\n`))
+app.use(corsMiddleware, JSONparser);
+
+async function serialize() {
+  const games = await Game.findAll();
+  const data = JSON.stringify(games);
+  return data;
+}
+async function update() {
+  const data = await serialize();
+  stream.send(data);
+}
+
+async function onStream(req, res) {
+  const data = await serialize();
+  stream.updateInit(data);
+  return stream.init(req, res);
+}
+
+app.get("/stream", onStream);
+
+const gameRouter = gameFactory(update);
+app.use(gameRouter);
+
+const port = process.env.PORT || 4000;
+
+app.listen(port, () => console.log(`\nListening on port ${port}\n`));
