@@ -4,7 +4,7 @@ const databaseUrl = process.env.DATABASE_URL || "postgres://postgres:pass@localh
 const db = new Sequelize(databaseUrl)
 
 db.sync()
-  .then((console.log(`\nDatabase connected!\n`)))
+  .then((console.log(`\nDatabase connected.\n`)))
   .catch(console.error)
 
 module.exports = db
