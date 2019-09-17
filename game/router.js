@@ -16,10 +16,15 @@ function factory(update) {
 
     return res.send(game);
   }
-  router.post("/game", authMiddleware, onGame);
+  router.post(
+    "/game",
+    // authMiddleware,
+    onGame
+  );
 
-  router.put("/join/:gameId",
-    // authMiddleware, 
+  router.put(
+    "/join/:gameId",
+    // authMiddleware,
     async (req, res, next) => {
       const { gameId } = req.params;
       const game = await Game.findByPk(gameId);
@@ -39,7 +44,8 @@ function factory(update) {
       if (usersInGame.length === 2) {
         await game.update({ round: 1 });
       }
-    });
+    }
+  );
 
   router.put("/choose/:choice", async (req, res, next) => {
     const { authorization } = req.headers;
@@ -53,50 +59,54 @@ function factory(update) {
 
     await user.update({ current_choice: choice });
 
-    const usersInGame = await User.findAll({ where: { gameId: game.id } })
-    const chosen = usersInGame.every(user => user.current_choice)
+    const usersInGame = await User.findAll({ where: { gameId: game.id } });
+    const chosen = usersInGame.every(user => user.current_choice);
 
     function checkWinner(users) {
-      const userOne = users[0]
-      const userTwo = users[1]
-      const choiceOne = userOne.current_choice
-      const choiceTwo = userTwo.current_choice
+      const userOne = users[0];
+      const userTwo = users[1];
+      const choiceOne = userOne.current_choice;
+      const choiceTwo = userTwo.current_choice;
 
       if (choiceOne === choiceTwo) {
-        return null
+        return null;
       }
       if (choiceOne === "rock") {
         if (choiceTwo === "paper") {
-          return userTwo
+          return userTwo;
         } else {
-          return userOne
+          return userOne;
         }
       }
       if (choiceOne === "paper") {
         if (choiceTwo === "scissors") {
-          return userTwo
+          return userTwo;
         } else {
-          return userOne
+          return userOne;
         }
       }
       if (choiceTwo === "rock") {
-        return userTwo
+        return userTwo;
       } else {
-        return userOne
+        return userOne;
       }
     }
 
     if (chosen) {
-      const winner = checkWinner(usersInGame)
-      console.log(winner)
+      const winner = checkWinner(usersInGame);
       if (!winner) {
         // send response
       } else {
-        await winner.update({ score: winner.score + 1 })
+        await winner.update({ score: winner.score + 1 });
+        // on game over
+        // if(winner.score === 5)
+        // tell frontend game is over
       }
-      // update game round
     }
-  })
+
+    usersInGame.map(async user => await user.update({ choice: null }));
+    await game.update({ round: game.round + 1 });
+  });
 
   return router;
 }
