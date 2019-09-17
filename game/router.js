@@ -2,6 +2,7 @@ const express = require("express");
 const { Router } = express;
 
 const Game = require("./model");
+const authMiddleware = require('../auth/middleware')
 
 function factory(update) {
   const router = new Router();
@@ -13,7 +14,7 @@ function factory(update) {
 
     return res.send(game);
   }
-  router.post("/game", onGame);
+  router.post("/game", authMiddleware, onGame);
 
   return router;
 }

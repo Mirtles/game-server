@@ -5,7 +5,7 @@ const db = require('../db')
 const User = db.define(
   'user',
   {
-    name: Sequelize.STRING,
+    name: { type: Sequelize.STRING, unique: true },
     password: Sequelize.STRING,
     score: Sequelize.INTEGER,
     current_choice: Sequelize.STRING,
