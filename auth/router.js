@@ -5,7 +5,7 @@ const router = new Router();
 const User = require("../user/model");
 
 router.post("/login", (req, res, next) => {
-  const { name, password } = req.body
+  const { name, password } = req.body;
   if (!name || !password) {
     res.status(400).send({
       message: "Please supply a valid name and password"

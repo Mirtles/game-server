@@ -12,15 +12,14 @@ router.post("/user", async (req, res, next) => {
     return res.send("Missing data");
   }
 
-  const users = await User.findAll()
-  const usernames = users.map(user => user.dataValues.name)
+  const users = await User.findAll();
+  const usernames = users.map(user => user.dataValues.name);
 
   if (usernames.find(username => username === name)) {
-    return res.send("That username is already taken.")
+    return res.status(400).send("That username is already taken.");
   }
 
   if (name && password) {
-    console.log(`\nRunning on..\n`)
     const user = {
       name,
       password: bcrypt.hashSync(password, 10),
@@ -32,6 +31,6 @@ router.post("/user", async (req, res, next) => {
       .then(user => res.json(user))
       .catch(next);
   }
-})
+});
 
 module.exports = router;
