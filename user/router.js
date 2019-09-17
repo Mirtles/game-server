@@ -6,11 +6,20 @@ const User = require("./model");
 
 const router = new Router();
 
-router.post("/user", (req, res, next) => {
+router.post("/user", async (req, res, next) => {
   const { name, password } = req.body;
   if (!name || !password) {
-    res.send("Missing data");
-  } else {
+    return res.send("Missing data");
+  }
+
+  const users = await User.findAll();
+  const usernames = users.map(user => user.dataValues.name);
+
+  if (usernames.find(username => username === name)) {
+    return res.status(400).send("That username is already taken.");
+  }
+
+  if (name && password) {
     const user = {
       name,
       password: bcrypt.hashSync(password, 10),
