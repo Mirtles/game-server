@@ -9,6 +9,7 @@ db.sync({
   // force: true
 })
   .then(console.log)
+
   .catch(console.error);
 
 module.exports = db;

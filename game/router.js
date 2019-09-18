@@ -52,7 +52,7 @@ function factory(update) {
     const { choice } = req.params;
 
     await user.update({ current_choice: choice });
-
+    // await update();
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
     const chosen = usersInGame.every(user => user.current_choice);
 
@@ -63,10 +63,12 @@ function factory(update) {
         usersInGame.map(
           async user => await user.update({ isRoundWinner: false })
         );
+        // await update();
       } else {
         const { winner, loser } = winnerAndLoser;
         await winner.update({ score: winner.score + 1, isRoundWinner: true });
         await loser.update({ isRoundWinner: false });
+        // await update();
       }
     }
     await update();
@@ -81,7 +83,7 @@ function factory(update) {
     const game = await Game.findByPk(user.gameId);
 
     await user.update({ hasClickedNext: true });
-
+    // await update();
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
 
     const reset = await usersInGame.every(user => {
@@ -100,7 +102,7 @@ function factory(update) {
           where: { gameId: game.id }
         }
       );
-      await update();
+      // await update();
 
       // usersInGame.map(async user => {
       //   console.log("running reset check on", user.name);
@@ -110,7 +112,7 @@ function factory(update) {
       //     hasClickedNext: false
       //   });
       // });
-      console.log("reset");
+      // console.log("reset");
     }
     // console.log(
     //   "\nAfter logic:",
@@ -121,7 +123,7 @@ function factory(update) {
     // if (user.score === 5) {
     //   res.send({ stopGame: "You won" });
     // }
-    console.log("message bus");
+    // console.log("message bus");
     await update();
   });
   return router;

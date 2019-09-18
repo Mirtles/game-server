@@ -23,9 +23,9 @@ async function serialize() {
 }
 async function update() {
   const data = await serialize();
-  console.log("*******");
-  console.log(data);
-  console.log("*******");
+  // console.log("*******");
+  // console.log(data);
+  // console.log("*******");
   stream.send(data);
 }
 
