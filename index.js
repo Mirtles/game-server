@@ -4,7 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 
 const Game = require("./game/model");
-const User = require("./user/model")
+const User = require("./user/model");
 const gameFactory = require("./game/router");
 const userFactory = require("./user/router");
 const loginRouter = require("./auth/router");
@@ -23,6 +23,9 @@ async function serialize() {
 }
 async function update() {
   const data = await serialize();
+  console.log("*******");
+  console.log(data);
+  console.log("*******");
   stream.send(data);
 }
 
@@ -37,7 +40,7 @@ app.get("/stream", onStream);
 const gameRouter = gameFactory(update);
 app.use(gameRouter);
 
-const userRouter = userFactory(update)
+const userRouter = userFactory(update);
 app.use(userRouter);
 
 app.use(loginRouter);

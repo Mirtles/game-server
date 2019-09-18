@@ -85,23 +85,43 @@ function factory(update) {
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
 
     const reset = await usersInGame.every(user => {
-      console.log("\nhas", user.name, "clicked next?", user.hasClickedNext, "\n")
-      return user.hasClickedNext === true
+      return user.hasClickedNext;
     });
 
     if (reset) {
       await game.update({ round: game.round + 1 });
-      return usersInGame.map(async user => {
-        console.log("\n\nrunning reset check on", user.name)
-        return await user.update({ isRoundWinner: null, current_choice: null, hasClickedNext: false })
-      })
+      await User.update(
+        {
+          isRoundWinner: null,
+          current_choice: null,
+          hasClickedNext: false
+        },
+        {
+          where: { gameId: game.id }
+        }
+      );
+      await update();
+
+      // usersInGame.map(async user => {
+      //   console.log("running reset check on", user.name);
+      //   return await user.update({
+      //     isRoundWinner: null,
+      //     current_choice: null,
+      //     hasClickedNext: false
+      //   });
+      // });
+      console.log("reset");
     }
-    console.log("\nAfter logic:", usersInGame.map(user => user.hasClickedNext), "\n\n")
+    // console.log(
+    //   "\nAfter logic:",
+    //   usersInGame.map(user => user.hasClickedNext),
+    //   "\n\n"
+    // );
 
     // if (user.score === 5) {
     //   res.send({ stopGame: "You won" });
     // }
-
+    console.log("message bus");
     await update();
   });
   return router;
