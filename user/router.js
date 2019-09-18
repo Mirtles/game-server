@@ -4,33 +4,37 @@ const bcrypt = require("bcryptjs");
 
 const User = require("./model");
 
-const router = new Router();
+function factory(update) {
+  const router = new Router();
 
-router.post("/user", async (req, res, next) => {
-  const { name, password } = req.body;
-  if (!name || !password) {
-    return res.send("Missing data");
-  }
+  router.post("/user", async (req, res, next) => {
+    const { name, password } = req.body;
+    if (!name || !password) {
+      return res.send("Missing data");
+    }
 
-  const users = await User.findAll();
-  const usernames = users.map(user => user.dataValues.name);
+    const users = await User.findAll();
+    const usernames = users.map(user => user.dataValues.name);
 
-  if (usernames.find(username => username === name)) {
-    return res.status(400).send("That username is already taken.");
-  }
+    if (usernames.find(username => username === name)) {
+      return res.status(400).send("That username is already taken.");
+    }
 
-  if (name && password) {
-    const user = {
-      name,
-      password: bcrypt.hashSync(password, 10),
-      score: 0,
-      choice: null
-    };
+    if (name && password) {
+      const user = {
+        name,
+        password: bcrypt.hashSync(password, 10),
+        score: 0,
+        choice: null
+      };
 
-    User.create(user)
-      .then(user => res.json(user))
-      .catch(next);
-  }
-});
+      const newUser = await User.create(user)
+      await update()
 
-module.exports = router;
+      return res.send(newUser)
+    }
+  })
+  return router
+}
+
+module.exports = factory;
