@@ -1,12 +1,14 @@
-const Sequelize = require('sequelize')
+const Sequelize = require("sequelize");
 
-const databaseUrl = process.env.DATABASE_URL || "postgres://postgres:pass@localhost:5432/postgres"
-const db = new Sequelize(databaseUrl)
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  "postgres://postgres:pass@localhost:5432/postgres";
+const db = new Sequelize(databaseUrl);
 
 db.sync({
-  // force: true 
+  // force: true
 })
-  .then((console.log(`\nDatabase connected.\n`)))
-  .catch(console.error)
+  .then(console.log(`\nDatabase connected.\n`))
+  .catch(console.error);
 
-module.exports = db
+module.exports = db;
