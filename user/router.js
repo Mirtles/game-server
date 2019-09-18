@@ -34,6 +34,7 @@ function factory(update) {
       return res.send(newUser)
     }
   })
+  return router
 }
 
 module.exports = factory;
