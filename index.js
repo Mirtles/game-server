@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const Game = require("./game/model");
 const User = require("./user/model")
 const gameFactory = require("./game/router");
-const userRouter = require("./user/router");
+const userFactory = require("./user/router");
 const loginRouter = require("./auth/router");
 
 const JSONparser = bodyParser.json();
@@ -37,6 +37,7 @@ app.get("/stream", onStream);
 const gameRouter = gameFactory(update);
 app.use(gameRouter);
 
+const userRouter = userFactory(update)
 app.use(userRouter);
 
 app.use(loginRouter);

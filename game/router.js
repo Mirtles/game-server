@@ -16,6 +16,7 @@ function factory(update) {
 
     return res.send(game);
   }
+
   router.post("/game", authMiddleware, onGame);
 
   router.put("/join/:gameId", authMiddleware, async (req, res, next) => {
@@ -54,42 +55,16 @@ function factory(update) {
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
     const chosen = usersInGame.every(user => user.current_choice);
 
-    function checkWinner(users) {
-      const userOne = users[0];
-      const userTwo = users[1];
-      const choiceOne = userOne.current_choice;
-      const choiceTwo = userTwo.current_choice;
-
-      if (choiceOne === choiceTwo) {
-        return null;
-      }
-      if (choiceOne === "rock") {
-        if (choiceTwo === "paper") {
-          return userTwo;
-        } else {
-          return userOne;
-        }
-      }
-      if (choiceOne === "paper") {
-        if (choiceTwo === "scissors") {
-          return userTwo;
-        } else {
-          return userOne;
-        }
-      }
-      if (choiceTwo === "rock") {
-        return userTwo;
-      } else {
-        return userOne;
-      }
-    }
-
     if (chosen) {
-      const winner = checkWinner(usersInGame);
-      if (!winner) {
-        // send response
+      const winnerAndLoser = checkWinner(usersInGame);
+
+      if (!winnerAndLoser) {
+        // send "draw" response
+        usersInGame.map(async user => await user.update({ isRoundWinner: false }))
       } else {
-        await winner.update({ score: winner.score + 1 });
+        const { winner, loser } = winnerAndLoser
+        await winner.update({ score: winner.score + 1, isRoundWinner: true })
+        await loser.update({ isRoundWinner: false });
         // on game over
         // if(winner.score === 5)
         // tell frontend game is over
@@ -101,6 +76,46 @@ function factory(update) {
   });
 
   return router;
+}
+
+function checkWinner(users) {
+  const userOne = users[0];
+  const userTwo = users[1];
+  const choiceOne = userOne.current_choice;
+  const choiceTwo = userTwo.current_choice;
+
+  const userOneWinner = {
+    winner: userOne,
+    loser: userTwo
+  }
+
+  const userTwoWinner = {
+    winner: userTwo,
+    loser: userOne
+  }
+
+  if (choiceOne === choiceTwo) {
+    return null;
+  }
+  if (choiceOne === "rock") {
+    if (choiceTwo === "paper") {
+      return userTwoWinner;
+    } else {
+      return userOneWinner;
+    }
+  }
+  if (choiceOne === "paper") {
+    if (choiceTwo === "scissors") {
+      return userTwoWinner;
+    } else {
+      return userOneWinner;
+    }
+  }
+  if (choiceTwo === "rock") {
+    return userTwoWinner;
+  } else {
+    return userOneWinner;
+  }
 }
 
 module.exports = factory;
