@@ -69,7 +69,7 @@ function factory(update) {
         await loser.update({ isRoundWinner: false });
       }
     }
-    res.send({ news: "Updated score" });
+    await update();
   });
 
   router.put("/round", async (req, res, next) => {
@@ -81,9 +81,17 @@ function factory(update) {
     const game = await Game.findByPk(user.gameId);
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
 
-    usersInGame.map(async user => await user.update({ choice: null }));
-    await game.update({ round: game.round + 1 });
-    await user.update({ isRoundWinner: null });
+    // const reset = usersInGame.every(user => user.current_choice === null);
+    // console.log(reset);
+
+    await user.update({ current_choice: null });
+
+    const reset = usersInGame.every(user => user.current_choice === null);
+
+    if (reset) {
+      await game.update({ round: game.round + 1 });
+      await user.update({ isRoundWinner: null });
+    }
 
     if (user.score === 5) {
       res.send({ stopGame: "You won" });
