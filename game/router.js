@@ -38,6 +38,7 @@ function factory(update) {
     if (usersInGame.length === 2) {
       await game.update({ round: 1 });
     }
+    await update()
   });
 
   router.put("/choose/:choice", async (req, res, next) => {
@@ -73,6 +74,7 @@ function factory(update) {
 
     usersInGame.map(async user => await user.update({ choice: null }));
     await game.update({ round: game.round + 1 });
+    await update()
   });
 
   return router;
