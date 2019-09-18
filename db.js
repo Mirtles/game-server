@@ -8,7 +8,7 @@ const db = new Sequelize(databaseUrl);
 db.sync({
   // force: true
 })
-  .then(console.log(`\nDatabase connected.\n`))
+  .then(console.log)
   .catch(console.error);
 
 module.exports = db;

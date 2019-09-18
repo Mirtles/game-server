@@ -79,23 +79,28 @@ function factory(update) {
 
     const user = await User.findByPk(data.userId);
     const game = await Game.findByPk(user.gameId);
+
+    await user.update({ hasClickedNext: true });
+
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
 
-    // const reset = usersInGame.every(user => user.current_choice === null);
-    // console.log(reset);
-
-    await user.update({ current_choice: null });
-
-    const reset = usersInGame.every(user => user.current_choice === null);
+    const reset = await usersInGame.every(user => {
+      console.log("\nhas", user.name, "clicked next?", user.hasClickedNext, "\n")
+      return user.hasClickedNext === true
+    });
 
     if (reset) {
       await game.update({ round: game.round + 1 });
-      await user.update({ isRoundWinner: null });
+      return usersInGame.map(async user => {
+        console.log("\n\nrunning reset check on", user.name)
+        return await user.update({ isRoundWinner: null, current_choice: null, hasClickedNext: false })
+      })
     }
+    console.log("\nAfter logic:", usersInGame.map(user => user.hasClickedNext), "\n\n")
 
-    if (user.score === 5) {
-      res.send({ stopGame: "You won" });
-    }
+    // if (user.score === 5) {
+    //   res.send({ stopGame: "You won" });
+    // }
 
     await update();
   });
