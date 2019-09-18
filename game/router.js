@@ -38,7 +38,7 @@ function factory(update) {
     if (usersInGame.length === 2) {
       await game.update({ round: 1 });
     }
-    await update()
+    await update();
   });
 
   router.put("/choose/:choice", async (req, res, next) => {
@@ -60,23 +60,37 @@ function factory(update) {
       const winnerAndLoser = checkWinner(usersInGame);
 
       if (!winnerAndLoser) {
-        // send "draw" response
-        usersInGame.map(async user => await user.update({ isRoundWinner: false }))
+        usersInGame.map(
+          async user => await user.update({ isRoundWinner: false })
+        );
       } else {
-        const { winner, loser } = winnerAndLoser
-        await winner.update({ score: winner.score + 1, isRoundWinner: true })
+        const { winner, loser } = winnerAndLoser;
+        await winner.update({ score: winner.score + 1, isRoundWinner: true });
         await loser.update({ isRoundWinner: false });
-        // on game over
-        // if(winner.score === 5)
-        // tell frontend game is over
       }
     }
+    res.send({ news: "Updated score" });
+  });
+
+  router.put("/round", async (req, res, next) => {
+    const { authorization } = req.headers;
+    const auth = authorization.split(" ");
+    const data = toData(auth[1]);
+
+    const user = await User.findByPk(data.userId);
+    const game = await Game.findByPk(user.gameId);
+    const usersInGame = await User.findAll({ where: { gameId: game.id } });
 
     usersInGame.map(async user => await user.update({ choice: null }));
     await game.update({ round: game.round + 1 });
-    await update()
-  });
+    await user.update({ isRoundWinner: null });
 
+    if (user.score === 5) {
+      res.send({ stopGame: "You won" });
+    }
+
+    await update();
+  });
   return router;
 }
 
@@ -89,12 +103,12 @@ function checkWinner(users) {
   const userOneWinner = {
     winner: userOne,
     loser: userTwo
-  }
+  };
 
   const userTwoWinner = {
     winner: userTwo,
     loser: userOne
-  }
+  };
 
   if (choiceOne === choiceTwo) {
     return null;
