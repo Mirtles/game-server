@@ -102,7 +102,8 @@ function factory(update) {
       {
         isRoundWinner: null,
         current_choice: null,
-        hasClickedNext: false
+        hasClickedNext: false,
+        gameId: null
       },
       {
         where: { gameId: game.id }
