@@ -39,6 +39,8 @@ function factory(update) {
       await game.update({ round: 1 });
     }
     await update();
+
+    res.send(usersInGame)
   });
 
   router.put("/choose/:choice", async (req, res, next) => {
@@ -52,7 +54,7 @@ function factory(update) {
     const { choice } = req.params;
 
     await user.update({ current_choice: choice });
-
+    // await update();
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
     const chosen = usersInGame.every(user => user.current_choice);
 
@@ -60,16 +62,18 @@ function factory(update) {
       const winnerAndLoser = checkWinner(usersInGame);
 
       if (!winnerAndLoser) {
-        usersInGame.map(
-          async user => await user.update({ isRoundWinner: false })
+        const promises = usersInGame.map(
+          async user => user.update({ isRoundWinner: false })
         );
+        await Promise.all(promises)
       } else {
         const { winner, loser } = winnerAndLoser;
         await winner.update({ score: winner.score + 1, isRoundWinner: true });
         await loser.update({ isRoundWinner: false });
       }
     }
-    res.send({ news: "Updated score" });
+    await update();
+    res.send({ chosen })
   });
 
   router.put("/round", async (req, res, next) => {
@@ -79,18 +83,31 @@ function factory(update) {
 
     const user = await User.findByPk(data.userId);
     const game = await Game.findByPk(user.gameId);
+
+    await user.update({ hasClickedNext: true });
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
 
-    usersInGame.map(async user => await user.update({ choice: null }));
-    await game.update({ round: game.round + 1 });
-    await user.update({ isRoundWinner: null });
+    const reset = usersInGame.every(user => {
+      return user.hasClickedNext;
+    });
 
-    if (user.score === 5) {
-      res.send({ stopGame: "You won" });
+    if (reset) {
+      await game.update({ round: game.round + 1 });
+      await User.update(
+        {
+          isRoundWinner: null,
+          current_choice: null,
+          hasClickedNext: false
+        },
+        {
+          where: { gameId: game.id }
+        }
+      );
     }
-
     await update();
+    res.send({ reset })
   });
+
   return router;
 }
 

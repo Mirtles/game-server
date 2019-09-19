@@ -10,6 +10,7 @@ const User = db.define(
     score: Sequelize.INTEGER,
     current_choice: Sequelize.STRING,
     isRoundWinner: Sequelize.BOOLEAN,
+    hasClickedNext: Sequelize.BOOLEAN,
   }
 )
 
