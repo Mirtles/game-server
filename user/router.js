@@ -10,14 +10,14 @@ function factory(update) {
   router.post("/user", async (req, res, next) => {
     const { name, password } = req.body;
     if (!name || !password) {
-      return res.send("Missing data");
+      return res.send({ body: "Oops! Enter name and password!" });
     }
 
     const users = await User.findAll();
     const usernames = users.map(user => user.dataValues.name);
 
     if (usernames.find(username => username === name)) {
-      return res.status(400).send("That username is already taken.");
+      return res.send({ body: "That username is already taken." });
     }
 
     const user = {
@@ -27,12 +27,12 @@ function factory(update) {
       choice: null
     };
 
-    const newUser = await User.create(user)
-    await update()
+    const newUser = await User.create(user);
+    await update();
 
-    return res.send(newUser)
-  })
-  return router
+    return res.send(newUser);
+  });
+  return router;
 }
 
 module.exports = factory;
