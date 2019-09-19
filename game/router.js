@@ -4,7 +4,6 @@ const { Router } = express;
 const Game = require("./model");
 const User = require("../user/model");
 const authMiddleware = require("../auth/middleware");
-const { toData } = require("../auth/jwt");
 
 function factory(update) {
   const router = new Router();
@@ -23,13 +22,8 @@ function factory(update) {
     const { gameId } = req.params;
     const game = await Game.findByPk(gameId);
 
-    const { authorization } = req.headers;
-    const auth = authorization.split(" ");
-
-    const data = toData(auth[1]);
-
     if (game.round === 0) {
-      const user = await User.findByPk(data.userId);
+      const user = req.user;
 
       await user.update({ gameId, score: 0 });
     }
@@ -40,21 +34,16 @@ function factory(update) {
     }
     await update();
 
-    res.send(usersInGame)
+    res.send(usersInGame);
   });
 
-  router.put("/choose/:choice", async (req, res, next) => {
-    const { authorization } = req.headers;
-    const auth = authorization.split(" ");
-    const data = toData(auth[1]);
-
-    const user = await User.findByPk(data.userId);
+  router.put("/choose/:choice", authMiddleware, async (req, res, next) => {
+    const user = req.user;
 
     const game = await Game.findByPk(user.gameId);
     const { choice } = req.params;
 
     await user.update({ current_choice: choice });
-    // await update();
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
     const chosen = usersInGame.every(user => user.current_choice);
 
@@ -62,10 +51,10 @@ function factory(update) {
       const winnerAndLoser = checkWinner(usersInGame);
 
       if (!winnerAndLoser) {
-        const promises = usersInGame.map(
-          async user => user.update({ isRoundWinner: false })
+        const promises = usersInGame.map(async user =>
+          user.update({ isRoundWinner: false })
         );
-        await Promise.all(promises)
+        await Promise.all(promises);
       } else {
         const { winner, loser } = winnerAndLoser;
         await winner.update({ score: winner.score + 1, isRoundWinner: true });
@@ -73,15 +62,12 @@ function factory(update) {
       }
     }
     await update();
-    res.send({ chosen })
+    res.send({ chosen });
   });
 
-  router.put("/round", async (req, res, next) => {
-    const { authorization } = req.headers;
-    const auth = authorization.split(" ");
-    const data = toData(auth[1]);
+  router.put("/round", authMiddleware, async (req, res, next) => {
+    const user = req.user;
 
-    const user = await User.findByPk(data.userId);
     const game = await Game.findByPk(user.gameId);
 
     await user.update({ hasClickedNext: true });
@@ -105,9 +91,30 @@ function factory(update) {
       );
     }
     await update();
-    res.send({ reset })
+    res.send({ reset });
   });
 
+  router.put("/reset", authMiddleware, async (req, res, next) => {
+    const user = req.user;
+    const game = await Game.findByPk(user.gameId);
+
+    await User.update(
+      {
+        isRoundWinner: null,
+        current_choice: null,
+        hasClickedNext: false
+      },
+      {
+        where: { gameId: game.id }
+      }
+    );
+
+    await game.update({ round: 0 });
+
+    await update();
+
+    res.send({ reset: true });
+  });
   return router;
 }
 
