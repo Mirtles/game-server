@@ -39,6 +39,8 @@ function factory(update) {
       await game.update({ round: 1 });
     }
     await update();
+
+    res.send(usersInGame)
   });
 
   router.put("/choose/:choice", async (req, res, next) => {
@@ -60,18 +62,18 @@ function factory(update) {
       const winnerAndLoser = checkWinner(usersInGame);
 
       if (!winnerAndLoser) {
-        usersInGame.map(
-          async user => await user.update({ isRoundWinner: false })
+        const promises = usersInGame.map(
+          async user => user.update({ isRoundWinner: false })
         );
-        // await update();
+        await Promise.all(promises)
       } else {
         const { winner, loser } = winnerAndLoser;
         await winner.update({ score: winner.score + 1, isRoundWinner: true });
         await loser.update({ isRoundWinner: false });
-        // await update();
       }
     }
     await update();
+    res.send({ chosen })
   });
 
   router.put("/round", async (req, res, next) => {
@@ -83,10 +85,9 @@ function factory(update) {
     const game = await Game.findByPk(user.gameId);
 
     await user.update({ hasClickedNext: true });
-    // await update();
     const usersInGame = await User.findAll({ where: { gameId: game.id } });
 
-    const reset = await usersInGame.every(user => {
+    const reset = usersInGame.every(user => {
       return user.hasClickedNext;
     });
 
@@ -102,30 +103,11 @@ function factory(update) {
           where: { gameId: game.id }
         }
       );
-      // await update();
-
-      // usersInGame.map(async user => {
-      //   console.log("running reset check on", user.name);
-      //   return await user.update({
-      //     isRoundWinner: null,
-      //     current_choice: null,
-      //     hasClickedNext: false
-      //   });
-      // });
-      // console.log("reset");
     }
-    // console.log(
-    //   "\nAfter logic:",
-    //   usersInGame.map(user => user.hasClickedNext),
-    //   "\n\n"
-    // );
-
-    // if (user.score === 5) {
-    //   res.send({ stopGame: "You won" });
-    // }
-    // console.log("message bus");
     await update();
+    res.send({ reset })
   });
+
   return router;
 }
 

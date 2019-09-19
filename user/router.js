@@ -20,19 +20,17 @@ function factory(update) {
       return res.status(400).send("That username is already taken.");
     }
 
-    if (name && password) {
-      const user = {
-        name,
-        password: bcrypt.hashSync(password, 10),
-        score: 0,
-        choice: null
-      };
+    const user = {
+      name,
+      password: bcrypt.hashSync(password, 10),
+      score: 0,
+      choice: null
+    };
 
-      const newUser = await User.create(user)
-      await update()
+    const newUser = await User.create(user)
+    await update()
 
-      return res.send(newUser)
-    }
+    return res.send(newUser)
   })
   return router
 }
