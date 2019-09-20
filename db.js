@@ -13,4 +13,3 @@ db.sync({
   .catch(console.error);
 
 module.exports = db;
-git 
