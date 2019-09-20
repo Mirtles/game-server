@@ -4,8 +4,9 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 
 const Game = require("./game/model");
+const User = require("./user/model");
 const gameFactory = require("./game/router");
-const userRouter = require("./user/router");
+const userFactory = require("./user/router");
 const loginRouter = require("./auth/router");
 
 const JSONparser = bodyParser.json();
@@ -16,7 +17,10 @@ const corsMiddleware = cors();
 app.use(corsMiddleware, JSONparser);
 
 async function serialize() {
-  const games = await Game.findAll();
+  const games = await Game.findAll({
+    include: [User],
+    order: [["id", "DESC"]]
+  });
   const data = JSON.stringify(games);
   return data;
 }
@@ -36,6 +40,7 @@ app.get("/stream", onStream);
 const gameRouter = gameFactory(update);
 app.use(gameRouter);
 
+const userRouter = userFactory(update);
 app.use(userRouter);
 
 app.use(loginRouter);

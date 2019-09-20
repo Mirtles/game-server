@@ -4,22 +4,22 @@ const bcrypt = require("bcryptjs");
 
 const User = require("./model");
 
-const router = new Router();
+function factory(update) {
+  const router = new Router();
 
-router.post("/user", async (req, res, next) => {
-  const { name, password } = req.body;
-  if (!name || !password) {
-    return res.send("Missing data");
-  }
+  router.post("/user", async (req, res, next) => {
+    const { name, password } = req.body;
+    if (!name || !password) {
+      return res.send({ body: "Oops! Enter name and password!" });
+    }
 
-  const users = await User.findAll();
-  const usernames = users.map(user => user.dataValues.name);
+    const users = await User.findAll();
+    const usernames = users.map(user => user.dataValues.name);
 
-  if (usernames.find(username => username === name)) {
-    return res.status(400).send("That username is already taken.");
-  }
+    if (usernames.find(username => username === name)) {
+      return res.send({ body: "That username is already taken." });
+    }
 
-  if (name && password) {
     const user = {
       name,
       password: bcrypt.hashSync(password, 10),
@@ -27,10 +27,12 @@ router.post("/user", async (req, res, next) => {
       choice: null
     };
 
-    User.create(user)
-      .then(user => res.json(user))
-      .catch(next);
-  }
-});
+    const newUser = await User.create(user);
+    await update();
 
-module.exports = router;
+    return res.send(newUser);
+  });
+  return router;
+}
+
+module.exports = factory;
