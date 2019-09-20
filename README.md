@@ -4,3 +4,5 @@ This repository contains the Node.js back-end of the game we built in week 7 at 
 The project combines our knowledge of HTML5, CSS3, JavaScript, PostgreSQL, ReactJS, Node.js, JWT authentication and Redux.
 
 By @AndreeaCcss and @Mirtles
+
+Front-end: https://github.com/AndreeaCcss/game-client
