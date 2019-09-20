@@ -17,7 +17,10 @@ const corsMiddleware = cors();
 app.use(corsMiddleware, JSONparser);
 
 async function serialize() {
-  const games = await Game.findAll({ include: [User] });
+  const games = await Game.findAll({
+    include: [User],
+    order: [["id", "DESC"]]
+  });
   const data = JSON.stringify(games);
   return data;
 }
