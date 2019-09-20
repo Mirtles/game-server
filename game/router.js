@@ -98,20 +98,19 @@ function factory(update) {
     const user = req.user;
     const game = await Game.findByPk(user.gameId);
 
-    await user.update({ gameId: null });
-
     await User.update(
       {
         isRoundWinner: null,
         current_choice: null,
-        hasClickedNext: false
-        // gameId: null
+        hasClickedNext: false,
+        score: 0
       },
       {
         where: { gameId: game.id }
       }
     );
 
+    await user.update({ gameId: null });
     await game.update({ round: 0 });
 
     await update();
