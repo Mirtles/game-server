@@ -6,10 +6,11 @@ const databaseUrl =
 const db = new Sequelize(databaseUrl);
 
 db.sync({
-  force: true
+  // force: true
 })
   .then(() => console.log("Database connected"))
 
   .catch(console.error);
 
 module.exports = db;
+git 
